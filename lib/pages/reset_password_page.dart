@@ -91,68 +91,144 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reset Password'),
+        backgroundColor: Colors.green[700],
+        centerTitle: true,
+        title: Text(
+          "Reset Password",
+          style: TextStyle(
+              fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white),
+        ),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _sendVerificationCode,
-                child: Text('Send Verification Code'),
-              ),
-              SizedBox(height: 20),
-              TextFormField(
-                controller: _resetCodeController,
-                decoration: InputDecoration(labelText: 'Verification Code'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter the verification code';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _newPasswordController,
-                decoration: InputDecoration(labelText: 'New Password'),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your new password';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _confirmPasswordController,
-                decoration: InputDecoration(labelText: 'Confirm New Password'),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please confirm your new password';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _resetPassword,
-                child: Text('Save New Password'),
-              ),
-            ],
+      body: Center(
+        child: Container(
+          padding: EdgeInsets.all(10.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 50.0,
+                ),
+                Text(
+                  "Reset Kata Sandi",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0),
+                ),
+                SizedBox(
+                  height: 15.0,
+                ),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                      hintText: 'Email',
+                      filled: true,
+                      fillColor: Color(0xffd9d9d9),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15.0),
+                          borderSide: BorderSide.none)),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 20),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.5,
+                  child: ElevatedButton(
+                    onPressed: _sendVerificationCode,
+                    child: Text(
+                      'Send Verification Code',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.0,
+                          color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green[700],
+                        padding: EdgeInsets.symmetric(vertical: 16.0),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15.0))),
+                  ),
+                ),
+                SizedBox(height: 20),
+                TextFormField(
+                  controller: _resetCodeController,
+                  decoration: InputDecoration(
+                      hintText: 'Kode Verifikasi',
+                      filled: true,
+                      fillColor: Color(0xffd9d9d9),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15.0),
+                          borderSide: BorderSide.none)),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the verification code';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(
+                  height: 15.0,
+                ),
+                TextFormField(
+                  controller: _newPasswordController,
+                  decoration: InputDecoration(
+                      hintText: 'Password',
+                      filled: true,
+                      fillColor: Color(0xffd9d9d9),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15.0),
+                          borderSide: BorderSide.none)),
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your new password';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(
+                  height: 15.0,
+                ),
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  decoration: InputDecoration(
+                      hintText: 'Konfirmasi Password',
+                      filled: true,
+                      fillColor: Color(0xffd9d9d9),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15.0),
+                          borderSide: BorderSide.none)),
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please confirm your new password';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _resetPassword,
+                    child: Text(
+                      'Ubah Sandi',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.0,
+                          color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green[700],
+                        padding: EdgeInsets.symmetric(vertical: 16.0),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15.0))),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
