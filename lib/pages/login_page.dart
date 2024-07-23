@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '/pages/home_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -14,6 +15,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
@@ -32,6 +34,10 @@ class _LoginPageState extends State<LoginPage> {
         final responseData = jsonDecode(response.body);
 
         if (responseData['login']) {
+          // Simpan email ke secure storage
+          await _secureStorage.write(
+              key: 'email', value: _emailController.text);
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Login Successful')),
           );

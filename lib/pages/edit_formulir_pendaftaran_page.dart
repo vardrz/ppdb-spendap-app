@@ -3,22 +3,28 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class EditFormulirPendaftaranPage extends StatefulWidget {
   const EditFormulirPendaftaranPage({super.key});
 
   @override
   State<EditFormulirPendaftaranPage> createState() =>
-      _EditFormulirPendaftaranPageState();
+      _FormulirPendaftaranPageState();
 }
 
-class _EditFormulirPendaftaranPageState
-    extends State<EditFormulirPendaftaranPage> {
+class _FormulirPendaftaranPageState extends State<EditFormulirPendaftaranPage> {
   File? _ijazahSdFile;
   File? _skhuFile;
   File? _pasFotoFile;
   File? _kkFile;
 
+  String? _ijazahSdFileName;
+  String? _skhuFileName;
+  String? _pasFotoFileName;
+  String? _kkFileName;
+
+  final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   final ImagePicker _picker = ImagePicker();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _nikController = TextEditingController();
@@ -32,6 +38,37 @@ class _EditFormulirPendaftaranPageState
   String? _jenisKelamin;
   DateTime? _selectedDate;
 
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    String? email = await _secureStorage.read(key: 'email');
+    if (email != null) {
+      final response = await http.get(Uri.parse(
+          'https://ppdbspendap.agsa.site/api/formulir/get.php?email=$email'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          final formData = data['data'];
+          setState(() {
+            _nameController.text = formData['name'];
+            _nikController.text = formData['nik'];
+            _agama = formData['religion'];
+            _tempatLahirController.text = formData['place_of_birth'];
+            _tglLahirController.text = formData['date_of_birth'];
+            _jenisKelamin = formData['gender'];
+            _schoolController.text = formData['school'];
+            _addressController.text = formData['address'];
+            _phoneController.text = formData['phone'];
+            _emailController.text = formData['email'];
+          });
+        }
+      }
+    }
+  }
+
   Future<void> _pickImage(String type) async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 
@@ -40,15 +77,19 @@ class _EditFormulirPendaftaranPageState
         switch (type) {
           case 'Ijazah SD':
             _ijazahSdFile = File(pickedFile.path);
+            _ijazahSdFileName = pickedFile.name;
             break;
           case 'SKHU':
             _skhuFile = File(pickedFile.path);
+            _skhuFileName = pickedFile.name;
             break;
           case 'Pas Foto':
             _pasFotoFile = File(pickedFile.path);
+            _pasFotoFileName = pickedFile.name;
             break;
           case 'KK':
             _kkFile = File(pickedFile.path);
+            _kkFileName = pickedFile.name;
             break;
         }
       });
@@ -73,7 +114,7 @@ class _EditFormulirPendaftaranPageState
 
   Future<void> _submitForm() async {
     final String apiUrl =
-        "https://ppdbspendap.agsa.site/api/formulir/create.php";
+        "https://ppdbspendap.agsa.site/api/formulir/update.php";
 
     final response = await http.post(
       Uri.parse(apiUrl),
@@ -96,12 +137,12 @@ class _EditFormulirPendaftaranPageState
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Formulir berhasil disimpan')),
+        SnackBar(content: Text('Formulir berhasil diperbarui')),
       );
       Navigator.of(context).pushReplacementNamed('/home');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menyimpan formulir')),
+        SnackBar(content: Text('Gagal memperbarui formulir')),
       );
     }
   }
@@ -187,7 +228,8 @@ class _EditFormulirPendaftaranPageState
                   buildTextField("Alamat Lengkap", "Masukkan alamat lengkap",
                       _addressController),
                   SizedBox(height: 10),
-                  buildTextField("Email", "Masukkan Email", _emailController),
+                  buildTextField("Email", "Masukkan Email", _emailController,
+                      enabled: false), // Disable email TextField
                   SizedBox(height: 10),
                   buildNumericField(
                       "No. HP", "Masukkan No.HP", _phoneController),
@@ -200,13 +242,14 @@ class _EditFormulirPendaftaranPageState
                         color: Colors.black),
                   ),
                   SizedBox(height: 10),
-                  buildUploadField("Ijazah SD", _ijazahSdFile),
+                  buildUploadField(
+                      "Ijazah SD", _ijazahSdFile, _ijazahSdFileName),
                   SizedBox(height: 10),
-                  buildUploadField("SKHU", _skhuFile),
+                  buildUploadField("SKHU", _skhuFile, _skhuFileName),
                   SizedBox(height: 10),
-                  buildUploadField("Pas Foto", _pasFotoFile),
+                  buildUploadField("Pas Foto", _pasFotoFile, _pasFotoFileName),
                   SizedBox(height: 10),
-                  buildUploadField("KK", _kkFile),
+                  buildUploadField("KK", _kkFile, _kkFileName),
                   SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -249,7 +292,8 @@ class _EditFormulirPendaftaranPageState
   }
 
   Widget buildTextField(
-      String labelText, String hintText, TextEditingController controller) {
+      String labelText, String hintText, TextEditingController controller,
+      {bool enabled = true}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0),
       child: Row(
@@ -259,23 +303,20 @@ class _EditFormulirPendaftaranPageState
             width: 120,
             child: Text(
               labelText,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 14),
             ),
           ),
-          SizedBox(width: 10),
           Expanded(
             child: TextFormField(
+              enabled: enabled,
               controller: controller,
               decoration: InputDecoration(
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
                 hintText: hintText,
-                filled: true,
-                fillColor: Colors.white,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 10, horizontal: 15),
               ),
             ),
           ),
@@ -295,24 +336,20 @@ class _EditFormulirPendaftaranPageState
             width: 120,
             child: Text(
               labelText,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 14),
             ),
           ),
-          SizedBox(width: 10),
           Expanded(
             child: TextFormField(
               keyboardType: TextInputType.number,
               controller: controller,
               decoration: InputDecoration(
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
                 hintText: hintText,
-                filled: true,
-                fillColor: Colors.white,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 10, horizontal: 15),
               ),
             ),
           ),
@@ -331,36 +368,51 @@ class _EditFormulirPendaftaranPageState
             width: 120,
             child: Text(
               labelText,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 14),
             ),
           ),
-          SizedBox(width: 10),
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _agama,
-              decoration: InputDecoration(
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
-                hintText: hintText,
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: BorderSide.none,
-                ),
-              ),
               onChanged: (newValue) {
                 setState(() {
                   _agama = newValue;
                 });
               },
-              items: <String>['Islam', 'Kristen', 'Hindu', 'Buddha', 'Konghucu']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+              items: [
+                DropdownMenuItem(
+                  value: "Islam",
+                  child: Text("Islam"),
+                ),
+                DropdownMenuItem(
+                  value: "Kristen",
+                  child: Text("Kristen"),
+                ),
+                DropdownMenuItem(
+                  value: "Katolik",
+                  child: Text("Katolik"),
+                ),
+                DropdownMenuItem(
+                  value: "Hindu",
+                  child: Text("Hindu"),
+                ),
+                DropdownMenuItem(
+                  value: "Buddha",
+                  child: Text("Buddha"),
+                ),
+                DropdownMenuItem(
+                  value: "Konghucu",
+                  child: Text("Konghucu"),
+                ),
+              ],
+              decoration: InputDecoration(
+                hintText: hintText,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              ),
             ),
           ),
         ],
@@ -378,29 +430,23 @@ class _EditFormulirPendaftaranPageState
             width: 120,
             child: Text(
               labelText,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 14),
             ),
           ),
-          SizedBox(width: 10),
           Expanded(
-            child: GestureDetector(
-              onTap: () => _selectDate(context),
-              child: AbsorbPointer(
-                child: TextFormField(
-                  controller: _tglLahirController,
-                  decoration: InputDecoration(
-                    contentPadding:
-                        EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
-                    hintText: hintText,
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
+            child: TextFormField(
+              readOnly: true,
+              controller: _tglLahirController,
+              decoration: InputDecoration(
+                hintText: hintText,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                suffixIcon: Icon(Icons.calendar_today),
               ),
+              onTap: () => _selectDate(context),
             ),
           ),
         ],
@@ -418,18 +464,18 @@ class _EditFormulirPendaftaranPageState
             width: 120,
             child: Text(
               labelText,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 14),
             ),
           ),
-          SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Radio<String>(
-                      value: 'Laki-laki',
+                Expanded(
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text("Laki-Laki"),
+                    leading: Radio<String>(
+                      value: "Laki-Laki",
                       groupValue: _jenisKelamin,
                       onChanged: (value) {
                         setState(() {
@@ -437,13 +483,14 @@ class _EditFormulirPendaftaranPageState
                         });
                       },
                     ),
-                    Text('Laki-laki'),
-                  ],
+                  ),
                 ),
-                Row(
-                  children: [
-                    Radio<String>(
-                      value: 'Perempuan',
+                Expanded(
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text("Perempuan"),
+                    leading: Radio<String>(
+                      value: "Perempuan",
                       groupValue: _jenisKelamin,
                       onChanged: (value) {
                         setState(() {
@@ -451,8 +498,7 @@ class _EditFormulirPendaftaranPageState
                         });
                       },
                     ),
-                    Text('Perempuan'),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -462,48 +508,39 @@ class _EditFormulirPendaftaranPageState
     );
   }
 
-  Widget buildUploadField(String labelText, File? file) {
+  Widget buildUploadField(String labelText, File? file, String? fileName) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 120,
+            width: 60,
             child: Text(
               labelText,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 14),
             ),
           ),
-          SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: () => _pickImage(labelText),
-                  child: Text(
-                    file == null ? 'Upload' : 'File Selected',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
+                  icon: Icon(Icons.upload_file),
+                  label: Text("Upload"),
                 ),
-                if (file != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 5.0),
-                    child: Text(
-                      'Selected: ${file.path.split('/').last}',
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                          color: Colors.black54),
-                    ),
-                  ),
+
+                // Text(
+                //   file != null ? 'File terupload' : 'Belum ada file',
+                //   style: TextStyle(
+                //     fontSize: 14,
+                //     color: file != null ? Colors.green : Colors.red,
+                //   ),
+                // ),
+                Text(
+                  fileName ?? '', // Menampilkan nama file
+                  style: TextStyle(fontSize: 14, color: Colors.black54),
+                )
               ],
             ),
           ),
