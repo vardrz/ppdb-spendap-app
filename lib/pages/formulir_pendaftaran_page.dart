@@ -384,44 +384,43 @@ class _FormulirPendaftaranPageState extends State<FormulirPendaftaranPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 120,
+          Flexible(
+            flex: 2,
             child: Text(
               labelText,
               style: TextStyle(fontSize: 14),
             ),
           ),
-          Expanded(
-            child: Row(
+          SizedBox(
+              width: 10), // Beri sedikit jarak antara label dan radio buttons
+          Flexible(
+            flex: 3,
+            child: Column(
               children: [
-                Expanded(
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text("Laki-Laki"),
-                    leading: Radio<String>(
-                      value: "Laki-Laki",
-                      groupValue: _jenisKelamin,
-                      onChanged: (value) {
-                        setState(() {
-                          _jenisKelamin = value;
-                        });
-                      },
-                    ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text("Laki-Laki"),
+                  leading: Radio<String>(
+                    value: "Laki-Laki",
+                    groupValue: _jenisKelamin,
+                    onChanged: (value) {
+                      setState(() {
+                        _jenisKelamin = value;
+                      });
+                    },
                   ),
                 ),
-                Expanded(
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text("Perempuan"),
-                    leading: Radio<String>(
-                      value: "Perempuan",
-                      groupValue: _jenisKelamin,
-                      onChanged: (value) {
-                        setState(() {
-                          _jenisKelamin = value;
-                        });
-                      },
-                    ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text("Perempuan"),
+                  leading: Radio<String>(
+                    value: "Perempuan",
+                    groupValue: _jenisKelamin,
+                    onChanged: (value) {
+                      setState(() {
+                        _jenisKelamin = value;
+                      });
+                    },
                   ),
                 ),
               ],
