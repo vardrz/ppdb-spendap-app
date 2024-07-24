@@ -28,12 +28,12 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              "SELAMAT DATANG CALON PESERTA DIDIK",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            Text(
-              "SMP NU KARANGDADAP",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              "SELAMAT DATANG CALON PESERTA DIDIK SMP NU KARANGDADAP",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+              textAlign: TextAlign.center,
             ),
             SizedBox(
               height: 20.0,
