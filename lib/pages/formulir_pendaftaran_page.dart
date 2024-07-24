@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class FormulirPendaftaranPage extends StatefulWidget {
@@ -14,18 +12,7 @@ class FormulirPendaftaranPage extends StatefulWidget {
 }
 
 class _FormulirPendaftaranPageState extends State<FormulirPendaftaranPage> {
-  File? _ijazahSdFile;
-  File? _skhuFile;
-  File? _pasFotoFile;
-  File? _kkFile;
-
-  String? _ijazahSdFileName;
-  String? _skhuFileName;
-  String? _pasFotoFileName;
-  String? _kkFileName;
-
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
-  final ImagePicker _picker = ImagePicker();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _nikController = TextEditingController();
   final TextEditingController _tempatLahirController = TextEditingController();
@@ -48,33 +35,6 @@ class _FormulirPendaftaranPageState extends State<FormulirPendaftaranPage> {
     setState(() {
       _emailController.text = email ?? '';
     });
-  }
-
-  Future<void> _pickImage(String type) async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        switch (type) {
-          case 'Ijazah SD':
-            _ijazahSdFile = File(pickedFile.path);
-            _ijazahSdFileName = pickedFile.name;
-            break;
-          case 'SKHU':
-            _skhuFile = File(pickedFile.path);
-            _skhuFileName = pickedFile.name;
-            break;
-          case 'Pas Foto':
-            _pasFotoFile = File(pickedFile.path);
-            _pasFotoFileName = pickedFile.name;
-            break;
-          case 'KK':
-            _kkFile = File(pickedFile.path);
-            _kkFileName = pickedFile.name;
-            break;
-        }
-      });
-    }
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -117,63 +77,14 @@ class _FormulirPendaftaranPageState extends State<FormulirPendaftaranPage> {
     );
 
     if (response.statusCode == 200) {
-      await _uploadFiles();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Formulir berhasil disimpan')),
       );
-      Navigator.of(context).pushReplacementNamed('/home');
+      Navigator.of(context).pushReplacementNamed('/uploaddokumen');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal menyimpan formulir')),
       );
-    }
-  }
-
-  Future<void> _uploadFiles() async {
-    String? email = _emailController.text;
-
-    if (_ijazahSdFile != null) {
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse(
-            'https://ppdbspendap.agsa.site/api/dokumen/ijazah.php?email=$email'),
-      );
-      request.files
-          .add(await http.MultipartFile.fromPath('file', _ijazahSdFile!.path));
-      await request.send();
-    }
-
-    if (_skhuFile != null) {
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse(
-            'https://ppdbspendap.agsa.site/api/dokumen/skhu.php?email=$email'),
-      );
-      request.files
-          .add(await http.MultipartFile.fromPath('file', _skhuFile!.path));
-      await request.send();
-    }
-
-    if (_pasFotoFile != null) {
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse(
-            'https://ppdbspendap.agsa.site/api/dokumen/foto.php?email=$email'),
-      );
-      request.files
-          .add(await http.MultipartFile.fromPath('file', _pasFotoFile!.path));
-      await request.send();
-    }
-
-    if (_kkFile != null) {
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse(
-            'https://ppdbspendap.agsa.site/api/dokumen/kk.php?email=$email'),
-      );
-      request.files
-          .add(await http.MultipartFile.fromPath('file', _kkFile!.path));
-      await request.send();
     }
   }
 
@@ -263,23 +174,6 @@ class _FormulirPendaftaranPageState extends State<FormulirPendaftaranPage> {
                   SizedBox(height: 10),
                   buildNumericField(
                       "No. HP", "Masukkan No.HP", _phoneController),
-                  SizedBox(height: 20),
-                  Text(
-                    "Upload Dokumen :",
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black),
-                  ),
-                  SizedBox(height: 10),
-                  buildUploadField(
-                      "Ijazah SD", _ijazahSdFile, _ijazahSdFileName),
-                  SizedBox(height: 10),
-                  buildUploadField("SKHU", _skhuFile, _skhuFileName),
-                  SizedBox(height: 10),
-                  buildUploadField("Pas Foto", _pasFotoFile, _pasFotoFileName),
-                  SizedBox(height: 10),
-                  buildUploadField("KK", _kkFile, _kkFileName),
                   SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -529,48 +423,6 @@ class _FormulirPendaftaranPageState extends State<FormulirPendaftaranPage> {
                     },
                   ),
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildUploadField(String labelText, File? file, String? fileName) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 60,
-            child: Text(
-              labelText,
-              style: TextStyle(fontSize: 14),
-            ),
-          ),
-          Expanded(
-            child: Row(
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () => _pickImage(labelText),
-                  icon: Icon(Icons.upload_file),
-                  label: Text("Upload"),
-                ),
-
-                Text(
-                  file != null ? 'File terupload' : 'Belum ada file',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: file != null ? Colors.green : Colors.red,
-                  ),
-                ),
-
-                // Text(
-                //   fileName ?? '', // Menampilkan nama file
-                //   style: TextStyle(fontSize: 14, color: Colors.black54),
-                // )
               ],
             ),
           ),

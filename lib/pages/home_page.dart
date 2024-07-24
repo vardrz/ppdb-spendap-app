@@ -29,7 +29,10 @@ class HomePage extends StatelessWidget {
           children: [
             Text(
               "SELAMAT DATANG CALON PESERTA DIDIK SMP NU KARANGDADAP",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
               textAlign: TextAlign.center,
             ),
             SizedBox(

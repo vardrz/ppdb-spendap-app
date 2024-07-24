@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:ppdb_spendap/pages/edit_formulir_pendaftaran_page.dart';
 import 'package:ppdb_spendap/pages/formulir_pendaftaran_page.dart';
 import 'package:ppdb_spendap/pages/pengumuman_pendaftaran_page.dart';
+import 'package:ppdb_spendap/pages/upload_dokumen.dart';
 import '/pages/login_page.dart';
 import '/pages/register_page.dart';
 import '/pages/reset_password_page.dart';
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
         '/formulirpendaftaran': (context) => FormulirPendaftaranPage(),
         '/editdatapendaftaran': (context) => EditFormulirPendaftaranPage(),
         '/pengumumanpendaftaran': (context) => PengumumanPendaftaranPage(),
+        '/uploaddokumen': (context) => UploadDokumen(),
       },
     );
   }
