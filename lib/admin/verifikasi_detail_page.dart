@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:math';
 
 class VerifikasiDetailPage extends StatefulWidget {
   final String email;
@@ -21,8 +22,16 @@ class _VerifikasiDetailPageState extends State<VerifikasiDetailPage> {
   }
 
   Future<void> _fetchData() async {
+    const _chars =
+        'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    Random _rnd = Random();
+    String getRandomString(int length) =>
+        String.fromCharCodes(Iterable.generate(
+            length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+    String random = getRandomString(5);
+
     final response = await http.get(Uri.parse(
-        'https://ppdbspendap.agsa.site/api/formulir/get.php?email=${widget.email}'));
+        'https://ppdbspendap.agsa.site/api/formulir/get.php?$random=&email=${widget.email}'));
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
@@ -86,50 +95,123 @@ class _VerifikasiDetailPageState extends State<VerifikasiDetailPage> {
               fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white),
         ),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: _data == null
-            ? Center(child: CircularProgressIndicator())
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Nama: ${_data!['name']}"),
-                  Text("NIK: ${_data!['nik']}"),
-                  Text("Agama: ${_data!['religion']}"),
-                  Text("Tempat Lahir: ${_data!['place_of_birth']}"),
-                  Text("Tanggal Lahir: ${_data!['date_of_birth']}"),
-                  Text("Jenis Kelamin: ${_data!['gender']}"),
-                  Text("Sekolah: ${_data!['school']}"),
-                  Text("Alamat: ${_data!['address']}"),
-                  Text("Telepon: ${_data!['phone']}"),
-                  Text("Email: ${_data!['email']}"),
-                  Text("Status: ${_data!['status']}"),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await _verifikasi('Sudah', _data!['email']);
-                    },
-                    child: Text(
-                      'Terima',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0,
-                      ),
+      body: Container(
+        padding: EdgeInsets.all(20.0),
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+        ),
+        child: SingleChildScrollView(
+          child: _data == null
+              ? Center(child: CircularProgressIndicator())
+              : Card(
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Text(
+                            "Detail Data Peserta Didik Baru",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green[700]),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        buildTextDisplay("Nama Lengkap", _data!['name']),
+                        SizedBox(height: 10),
+                        buildTextDisplay("NIK", _data!['nik']),
+                        SizedBox(height: 10),
+                        buildTextDisplay("Agama", _data!['religion']),
+                        SizedBox(height: 10),
+                        buildTextDisplay(
+                            "Tempat Lahir", _data!['place_of_birth']),
+                        SizedBox(height: 10),
+                        buildTextDisplay(
+                            "Tanggal Lahir", _data!['date_of_birth']),
+                        SizedBox(height: 10),
+                        buildTextDisplay("Jenis Kelamin", _data!['gender']),
+                        SizedBox(height: 10),
+                        buildTextDisplay("Asal Sekolah", _data!['school']),
+                        SizedBox(height: 10),
+                        buildTextDisplay("Alamat Lengkap", _data!['address']),
+                        SizedBox(height: 10),
+                        buildTextDisplay("Email", _data!['email']),
+                        SizedBox(height: 10),
+                        buildTextDisplay("No. HP", _data!['phone']),
+                        SizedBox(height: 10),
+                        buildTextDisplay("Status", _data!['status']),
+                        SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () async {
+                                await _verifikasi('Sudah', _data!['email']);
+                              },
+                              child: Text(
+                                'Terima',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 30, vertical: 10),
+                                textStyle: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: () async {
+                                await _verifikasi('Ditolak', _data!['email']);
+                              },
+                              child: Text('Tolak',
+                                  style: TextStyle(color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 30, vertical: 10),
+                                textStyle: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await _verifikasi('Ditolak', _data!['email']);
-                    },
-                    child: Text(
-                      'Tolak',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildTextDisplay(String labelText, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 120,
+            child: Text(
+              labelText,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(fontSize: 14),
+            ),
+          ),
+        ],
       ),
     );
   }
