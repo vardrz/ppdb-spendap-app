@@ -41,10 +41,17 @@ class _LoginPageState extends State<LoginPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Login Successful')),
           );
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => HomePage()),
-          );
+
+          // Cek apakah email dan password adalah admin
+          if (_emailController.text == 'admin@mail.com' &&
+              _passwordController.text == 'admin#1234') {
+            Navigator.pushNamed(context, '/admin_home');
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()),
+            );
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
