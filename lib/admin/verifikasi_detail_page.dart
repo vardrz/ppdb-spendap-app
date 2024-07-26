@@ -47,6 +47,33 @@ class _VerifikasiDetailPageState extends State<VerifikasiDetailPage> {
     }
   }
 
+  Future<void> _verifikasi(String status, String email) async {
+    final String apiUrl =
+        "https://ppdbspendap.agsa.site/api/formulir/status.php";
+
+    final response = await http.put(
+      Uri.parse(apiUrl),
+      body: jsonEncode({
+        "status": status,
+        "email": email,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Status diperbarui')),
+      );
+      Navigator.of(context).pushReplacementNamed('/admin_home');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memperbarui status')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,7 +103,31 @@ class _VerifikasiDetailPageState extends State<VerifikasiDetailPage> {
                   Text("Alamat: ${_data!['address']}"),
                   Text("Telepon: ${_data!['phone']}"),
                   Text("Email: ${_data!['email']}"),
-                  // Tambahkan detail lain sesuai kebutuhan
+                  Text("Status: ${_data!['status']}"),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _verifikasi('Sudah', _data!['email']);
+                    },
+                    child: Text(
+                      'Terima',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.0,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _verifikasi('Ditolak', _data!['email']);
+                    },
+                    child: Text(
+                      'Tolak',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.0,
+                      ),
+                    ),
+                  ),
                 ],
               ),
       ),
