@@ -1,0 +1,88 @@
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+class VerifikasiDetailPage extends StatefulWidget {
+  final String email;
+
+  const VerifikasiDetailPage({Key? key, required this.email}) : super(key: key);
+
+  @override
+  _VerifikasiDetailPageState createState() => _VerifikasiDetailPageState();
+}
+
+class _VerifikasiDetailPageState extends State<VerifikasiDetailPage> {
+  Map<String, dynamic>? _data;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    final response = await http.get(Uri.parse(
+        'https://ppdbspendap.agsa.site/api/formulir/get.php?email=${widget.email}'));
+
+    print('Fetching data for email: ${widget.email}'); // Debugging print
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonResponse = jsonDecode(response.body);
+      print('Response data: $jsonResponse'); // Debugging print
+
+      if (jsonResponse.isNotEmpty) {
+        setState(() {
+          _data = jsonResponse[0];
+        });
+      } else {
+        setState(() {
+          _data = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Data not found for the given email.')),
+        );
+      }
+    } else {
+      // Handle error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load data: ${response.statusCode}')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.green[700],
+        centerTitle: true,
+        title: Text(
+          "Detail Verifikasi",
+          style: TextStyle(
+              fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white),
+        ),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(8.0),
+        child: _data == null
+            ? Center(child: CircularProgressIndicator())
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Nama: ${_data!['name'] ?? 'N/A'}"),
+                  Text("NIK: ${_data!['nik'] ?? 'N/A'}"),
+                  Text("Agama: ${_data!['religion'] ?? 'N/A'}"),
+                  Text("Tempat Lahir: ${_data!['place_of_birth'] ?? 'N/A'}"),
+                  Text("Tanggal Lahir: ${_data!['date_of_birth'] ?? 'N/A'}"),
+                  Text("Jenis Kelamin: ${_data!['gender'] ?? 'N/A'}"),
+                  Text("Sekolah: ${_data!['school'] ?? 'N/A'}"),
+                  Text("Alamat: ${_data!['address'] ?? 'N/A'}"),
+                  Text("Telepon: ${_data!['phone'] ?? 'N/A'}"),
+                  Text("Email: ${_data!['email'] ?? 'N/A'}"),
+                  // Tambahkan detail lain sesuai kebutuhan
+                ],
+              ),
+      ),
+    );
+  }
+}
