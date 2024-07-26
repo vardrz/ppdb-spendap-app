@@ -25,10 +25,42 @@ class _LaporanState extends State<Laporan> {
         child: Container(
           child: Center(
               child: Container(
-            width: MediaQuery.of(context).size.width * 0.7,
-            height: MediaQuery.of(context).size.height * 0.7,
+            padding: EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2), // Warna bayangan
+                    spreadRadius: 2, // Radius penyebaran bayangan
+                    blurRadius: 2, // Radius blur bayangan
+                    offset: Offset(1, 1), // Offset bayangan (x, y)
+                  ),
+                ],
+                borderRadius: BorderRadius.circular(10.0)),
+            width: MediaQuery.of(context).size.width * 0.8,
+            height: MediaQuery.of(context).size.height * 0.8,
             child: Column(
-              children: [Text("Laporan")],
+              children: [
+                Container(
+                    color: Colors.grey[350],
+                    child: Text("Laporan Peserta Didik Baru 2024/2025")),
+                SizedBox(
+                  height: 10.0,
+                ),
+                Text("Pendaftar :"),
+                SizedBox(
+                  height: 10.0,
+                ),
+                Text("Diterima :"),
+                SizedBox(
+                  height: 10.0,
+                ),
+                Text("Ditolak :"),
+                SizedBox(
+                  height: 10.0,
+                ),
+                Text("Belum Diverifikasi :"),
+              ],
             ),
           )),
         ),
