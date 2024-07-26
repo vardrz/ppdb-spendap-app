@@ -24,15 +24,12 @@ class _VerifikasiDetailPageState extends State<VerifikasiDetailPage> {
     final response = await http.get(Uri.parse(
         'https://ppdbspendap.agsa.site/api/formulir/get.php?email=${widget.email}'));
 
-    print('Fetching data for email: ${widget.email}'); // Debugging print
-
     if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse = jsonDecode(response.body);
-      print('Response data: $jsonResponse'); // Debugging print
+      final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
 
       if (jsonResponse.isNotEmpty) {
         setState(() {
-          _data = jsonResponse[0];
+          _data = jsonResponse['data']; // Assign the whole map
         });
       } else {
         setState(() {
@@ -69,16 +66,16 @@ class _VerifikasiDetailPageState extends State<VerifikasiDetailPage> {
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Nama: ${_data!['name'] ?? 'N/A'}"),
-                  Text("NIK: ${_data!['nik'] ?? 'N/A'}"),
-                  Text("Agama: ${_data!['religion'] ?? 'N/A'}"),
-                  Text("Tempat Lahir: ${_data!['place_of_birth'] ?? 'N/A'}"),
-                  Text("Tanggal Lahir: ${_data!['date_of_birth'] ?? 'N/A'}"),
-                  Text("Jenis Kelamin: ${_data!['gender'] ?? 'N/A'}"),
-                  Text("Sekolah: ${_data!['school'] ?? 'N/A'}"),
-                  Text("Alamat: ${_data!['address'] ?? 'N/A'}"),
-                  Text("Telepon: ${_data!['phone'] ?? 'N/A'}"),
-                  Text("Email: ${_data!['email'] ?? 'N/A'}"),
+                  Text("Nama: ${_data!['name']}"),
+                  Text("NIK: ${_data!['nik']}"),
+                  Text("Agama: ${_data!['religion']}"),
+                  Text("Tempat Lahir: ${_data!['place_of_birth']}"),
+                  Text("Tanggal Lahir: ${_data!['date_of_birth']}"),
+                  Text("Jenis Kelamin: ${_data!['gender']}"),
+                  Text("Sekolah: ${_data!['school']}"),
+                  Text("Alamat: ${_data!['address']}"),
+                  Text("Telepon: ${_data!['phone']}"),
+                  Text("Email: ${_data!['email']}"),
                   // Tambahkan detail lain sesuai kebutuhan
                 ],
               ),

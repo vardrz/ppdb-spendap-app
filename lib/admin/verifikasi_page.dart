@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:math';
 import 'verifikasi_detail_page.dart'; // Import halaman detail
 
 class VerifikasiPage extends StatefulWidget {
@@ -20,8 +21,16 @@ class _VerifikasiPageState extends State<VerifikasiPage> {
   }
 
   Future<void> _fetchData() async {
-    final response = await http
-        .get(Uri.parse('https://ppdbspendap.agsa.site/api/formulir/get.php'));
+    const _chars =
+        'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    Random _rnd = Random();
+    String getRandomString(int length) =>
+        String.fromCharCodes(Iterable.generate(
+            length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+    String random = getRandomString(5);
+
+    final response = await http.get(Uri.parse(
+        'https://ppdbspendap.agsa.site/api/formulir/get.php?$random'));
 
     if (response.statusCode == 200) {
       setState(() {
