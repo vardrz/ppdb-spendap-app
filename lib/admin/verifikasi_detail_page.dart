@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:math';
+import 'package:url_launcher/url_launcher.dart';
 
 class VerifikasiDetailPage extends StatefulWidget {
   final String email;
@@ -146,6 +147,14 @@ class _VerifikasiDetailPageState extends State<VerifikasiDetailPage> {
                         SizedBox(height: 10),
                         buildTextDisplay("No. HP", _data!['phone']),
                         SizedBox(height: 10),
+                        buildFileDisplay("Ijazah", _data!['ijazah']),
+                        SizedBox(height: 10),
+                        buildFileDisplay("SKHU", _data!['skhu']),
+                        SizedBox(height: 10),
+                        buildFileDisplay("Pas Foto", _data!['pas_foto']),
+                        SizedBox(height: 10),
+                        buildFileDisplay("Kartu Keluarga", _data!['kk']),
+                        SizedBox(height: 10),
                         buildTextDisplay("Status", _data!['status']),
                         SizedBox(height: 20),
                         Row(
@@ -210,6 +219,48 @@ class _VerifikasiDetailPageState extends State<VerifikasiDetailPage> {
               value,
               style: TextStyle(fontSize: 14),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildFileDisplay(String labelText, String? fileName) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 120,
+            child: Text(
+              labelText,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(
+            child: fileName == null || fileName.isEmpty
+                ? Text(
+                    "Data belum ada",
+                    style: TextStyle(fontSize: 14, color: Colors.red),
+                  )
+                : InkWell(
+                    onTap: () async {
+                      final url =
+                          'https://ppdbspendap.agsa.site/assets/$fileName';
+                      if (await canLaunch(url)) {
+                        await launch(url);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Could not launch $url')),
+                        );
+                      }
+                    },
+                    child: Text(
+                      fileName,
+                      style: TextStyle(fontSize: 14, color: Colors.blue),
+                    ),
+                  ),
           ),
         ],
       ),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class EditFormulirPendaftaranPage extends StatefulWidget {
@@ -10,22 +8,12 @@ class EditFormulirPendaftaranPage extends StatefulWidget {
 
   @override
   State<EditFormulirPendaftaranPage> createState() =>
-      _FormulirPendaftaranPageState();
+      _EditFormulirPendaftaranPageState();
 }
 
-class _FormulirPendaftaranPageState extends State<EditFormulirPendaftaranPage> {
-  File? _ijazahSdFile;
-  File? _skhuFile;
-  File? _pasFotoFile;
-  File? _kkFile;
-
-  String? _ijazahSdFileName;
-  String? _skhuFileName;
-  String? _pasFotoFileName;
-  String? _kkFileName;
-
+class _EditFormulirPendaftaranPageState
+    extends State<EditFormulirPendaftaranPage> {
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
-  final ImagePicker _picker = ImagePicker();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _nikController = TextEditingController();
   final TextEditingController _tempatLahirController = TextEditingController();
@@ -38,6 +26,7 @@ class _FormulirPendaftaranPageState extends State<EditFormulirPendaftaranPage> {
   String? _jenisKelamin;
   DateTime? _selectedDate;
 
+  @override
   void initState() {
     super.initState();
     _loadData();
@@ -46,53 +35,44 @@ class _FormulirPendaftaranPageState extends State<EditFormulirPendaftaranPage> {
   Future<void> _loadData() async {
     String? email = await _secureStorage.read(key: 'email');
     if (email != null) {
-      final response = await http.get(Uri.parse(
-          'https://ppdbspendap.agsa.site/api/formulir/get.php?email=$email'));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success'] == true) {
-          final formData = data['data'];
-          setState(() {
-            _nameController.text = formData['name'];
-            _nikController.text = formData['nik'];
-            _agama = formData['religion'];
-            _tempatLahirController.text = formData['place_of_birth'];
-            _tglLahirController.text = formData['date_of_birth'];
-            _jenisKelamin = formData['gender'];
-            _schoolController.text = formData['school'];
-            _addressController.text = formData['address'];
-            _phoneController.text = formData['phone'];
-            _emailController.text = formData['email'];
-          });
-        }
-      }
+      _emailController.text = email;
+      await _fetchFormData(email);
     }
   }
 
-  Future<void> _pickImage(String type) async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+  Future<void> _fetchFormData(String email) async {
+    final String apiUrl =
+        "https://ppdbspendap.agsa.site/api/formulir/get.php?email=$email";
+    final response = await http.get(Uri.parse(apiUrl));
 
-    if (pickedFile != null) {
-      setState(() {
-        switch (type) {
-          case 'Ijazah SD':
-            _ijazahSdFile = File(pickedFile.path);
-            _ijazahSdFileName = pickedFile.name;
-            break;
-          case 'SKHU':
-            _skhuFile = File(pickedFile.path);
-            _skhuFileName = pickedFile.name;
-            break;
-          case 'Pas Foto':
-            _pasFotoFile = File(pickedFile.path);
-            _pasFotoFileName = pickedFile.name;
-            break;
-          case 'KK':
-            _kkFile = File(pickedFile.path);
-            _kkFileName = pickedFile.name;
-            break;
-        }
-      });
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      if (data['success'] == true) {
+        final formData = data['data'];
+
+        setState(() {
+          _nameController.text = formData['name'];
+          _nikController.text =
+              formData['nik'].toString(); // Convert to string if needed
+          _agama = formData['religion'];
+          _tempatLahirController.text = formData['place_of_birth'];
+          _tglLahirController.text = formData['date_of_birth'];
+          _jenisKelamin = formData['gender'];
+          _schoolController.text = formData['school'];
+          _addressController.text = formData['address'];
+          _phoneController.text = formData['phone'];
+          _emailController.text = formData['email'];
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal memuat data formulir')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memuat data formulir')),
+      );
     }
   }
 
@@ -116,7 +96,7 @@ class _FormulirPendaftaranPageState extends State<EditFormulirPendaftaranPage> {
     final String apiUrl =
         "https://ppdbspendap.agsa.site/api/formulir/update.php";
 
-    final response = await http.post(
+    final response = await http.put(
       Uri.parse(apiUrl),
       body: jsonEncode({
         "name": _nameController.text,
@@ -137,12 +117,12 @@ class _FormulirPendaftaranPageState extends State<EditFormulirPendaftaranPage> {
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Formulir berhasil diperbarui')),
+        SnackBar(content: Text('Formulir berhasil diedit')),
       );
-      Navigator.of(context).pushReplacementNamed('/home');
+      Navigator.of(context).pushReplacementNamed('/uploaddokumen');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal memperbarui formulir')),
+        SnackBar(content: Text('Gagal mengubah formulir')),
       );
     }
   }
@@ -153,7 +133,7 @@ class _FormulirPendaftaranPageState extends State<EditFormulirPendaftaranPage> {
 
   void _cancelForm() {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Formulir dibatalkan')),
+      SnackBar(content: Text('Perubahan Formulir dibatalkan')),
     );
     Navigator.of(context).pop();
   }
@@ -234,30 +214,13 @@ class _FormulirPendaftaranPageState extends State<EditFormulirPendaftaranPage> {
                   buildNumericField(
                       "No. HP", "Masukkan No.HP", _phoneController),
                   SizedBox(height: 20),
-                  Text(
-                    "Upload Dokumen :",
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black),
-                  ),
-                  SizedBox(height: 10),
-                  buildUploadField(
-                      "Ijazah SD", _ijazahSdFile, _ijazahSdFileName),
-                  SizedBox(height: 10),
-                  buildUploadField("SKHU", _skhuFile, _skhuFileName),
-                  SizedBox(height: 10),
-                  buildUploadField("Pas Foto", _pasFotoFile, _pasFotoFileName),
-                  SizedBox(height: 10),
-                  buildUploadField("KK", _kkFile, _kkFileName),
-                  SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
                         onPressed: _saveForm,
                         child: Text(
-                          'Simpan',
+                          'Update',
                           style: TextStyle(color: Colors.white),
                         ),
                         style: ElevatedButton.styleFrom(
@@ -311,12 +274,12 @@ class _FormulirPendaftaranPageState extends State<EditFormulirPendaftaranPage> {
               enabled: enabled,
               controller: controller,
               decoration: InputDecoration(
-                hintText: hintText,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(10.0),
                 ),
+                hintText: hintText,
                 contentPadding:
-                    EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                    EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               ),
             ),
           ),
@@ -327,35 +290,7 @@ class _FormulirPendaftaranPageState extends State<EditFormulirPendaftaranPage> {
 
   Widget buildNumericField(
       String labelText, String hintText, TextEditingController controller) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 120,
-            child: Text(
-              labelText,
-              style: TextStyle(fontSize: 14),
-            ),
-          ),
-          Expanded(
-            child: TextFormField(
-              keyboardType: TextInputType.number,
-              controller: controller,
-              decoration: InputDecoration(
-                hintText: hintText,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return buildTextField(labelText, hintText, controller);
   }
 
   Widget buildDropdownField(String labelText, String hintText) {
@@ -374,44 +309,25 @@ class _FormulirPendaftaranPageState extends State<EditFormulirPendaftaranPage> {
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _agama,
-              onChanged: (newValue) {
+              hint: Text(hintText),
+              items: <String>['Islam', 'Kristen', 'Katholik', 'Hindu', 'Budha']
+                  .map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
                 setState(() {
                   _agama = newValue;
                 });
               },
-              items: [
-                DropdownMenuItem(
-                  value: "Islam",
-                  child: Text("Islam"),
-                ),
-                DropdownMenuItem(
-                  value: "Kristen",
-                  child: Text("Kristen"),
-                ),
-                DropdownMenuItem(
-                  value: "Katolik",
-                  child: Text("Katolik"),
-                ),
-                DropdownMenuItem(
-                  value: "Hindu",
-                  child: Text("Hindu"),
-                ),
-                DropdownMenuItem(
-                  value: "Buddha",
-                  child: Text("Buddha"),
-                ),
-                DropdownMenuItem(
-                  value: "Konghucu",
-                  child: Text("Konghucu"),
-                ),
-              ],
               decoration: InputDecoration(
-                hintText: hintText,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(10.0),
                 ),
                 contentPadding:
-                    EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                    EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               ),
             ),
           ),
@@ -435,18 +351,17 @@ class _FormulirPendaftaranPageState extends State<EditFormulirPendaftaranPage> {
           ),
           Expanded(
             child: TextFormField(
-              readOnly: true,
               controller: _tglLahirController,
-              decoration: InputDecoration(
-                hintText: hintText,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                suffixIcon: Icon(Icons.calendar_today),
-              ),
+              readOnly: true,
               onTap: () => _selectDate(context),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                hintText: hintText,
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              ),
             ),
           ),
         ],
@@ -470,77 +385,26 @@ class _FormulirPendaftaranPageState extends State<EditFormulirPendaftaranPage> {
           Expanded(
             child: Row(
               children: [
-                Expanded(
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text("Laki-Laki"),
-                    leading: Radio<String>(
-                      value: "Laki-Laki",
-                      groupValue: _jenisKelamin,
-                      onChanged: (value) {
-                        setState(() {
-                          _jenisKelamin = value;
-                        });
-                      },
-                    ),
-                  ),
+                Radio<String>(
+                  value: 'L',
+                  groupValue: _jenisKelamin,
+                  onChanged: (String? value) {
+                    setState(() {
+                      _jenisKelamin = value;
+                    });
+                  },
                 ),
-                Expanded(
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text("Perempuan"),
-                    leading: Radio<String>(
-                      value: "Perempuan",
-                      groupValue: _jenisKelamin,
-                      onChanged: (value) {
-                        setState(() {
-                          _jenisKelamin = value;
-                        });
-                      },
-                    ),
-                  ),
+                Text('Laki-laki'),
+                Radio<String>(
+                  value: 'P',
+                  groupValue: _jenisKelamin,
+                  onChanged: (String? value) {
+                    setState(() {
+                      _jenisKelamin = value;
+                    });
+                  },
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildUploadField(String labelText, File? file, String? fileName) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 60,
-            child: Text(
-              labelText,
-              style: TextStyle(fontSize: 14),
-            ),
-          ),
-          Expanded(
-            child: Row(
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () => _pickImage(labelText),
-                  icon: Icon(Icons.upload_file),
-                  label: Text("Upload"),
-                ),
-
-                // Text(
-                //   file != null ? 'File terupload' : 'Belum ada file',
-                //   style: TextStyle(
-                //     fontSize: 14,
-                //     color: file != null ? Colors.green : Colors.red,
-                //   ),
-                // ),
-                Text(
-                  fileName ?? '', // Menampilkan nama file
-                  style: TextStyle(fontSize: 14, color: Colors.black54),
-                )
+                Text('Perempuan'),
               ],
             ),
           ),
